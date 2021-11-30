@@ -78,14 +78,18 @@ public class UserThread extends Thread {
 				if(input.startsWith("BALLOT")) {
 					String[] parts = input.split(" ");
 					ballot = parts[1];
+					System.out.println("INFO | Received Ballot");
 					
 				} else if(input.startsWith("USERNAME")) {
 					String[] parts = input.split(" ");
 					userName = parts[1];
+					System.out.println("INFO | Received Username");
 					
 				} else if(input.startsWith("KEY")) {
 					String[] parts = input.split(" ");
 					symmetricalKey = parts[1];	
+					System.out.println("INFO | Received Symmetrical Key");
+					
 				} else if(input.startsWith("FINAL")) {
 					new BallotHandler(ballot, userName, symmetricalKey, privateKey);
 				}
