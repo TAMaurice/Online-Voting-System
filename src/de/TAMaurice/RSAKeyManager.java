@@ -15,11 +15,11 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
-public class KeyManager {
+public class RSAKeyManager {
 	private PrivateKey privateKey;
 	private PublicKey publicKey;
 	
-	public KeyManager() throws NoSuchAlgorithmException {
+	public RSAKeyManager() throws NoSuchAlgorithmException {
 		KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         SecureRandom secureRandom = new SecureRandom();
  

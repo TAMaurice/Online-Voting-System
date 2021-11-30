@@ -81,7 +81,7 @@ public class FileManager {
 		try {
 			FileWriter pubWriter = new FileWriter("src/publicKey");
 			FileWriter privWriter = new FileWriter("src/privateKey");
-			KeyManager keyManager = new KeyManager();
+			RSAKeyManager keyManager = new RSAKeyManager();
 			
 			pubWriter.write(keyManager.getPublicKey());
 			privWriter.write(keyManager.getPrivateKey());

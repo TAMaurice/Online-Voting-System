@@ -2,28 +2,21 @@ package de.TAMaurice;
 
 import java.io.*;
 import java.net.Socket;
-import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.util.List;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 public class UserThread extends Thread {
 	private Socket socket;
 	private PrintWriter writer;
 	
 	boolean running = true;
-	boolean receivedList = false;
-	boolean receivedPub = false;
-	
-	private String publicKeyString;
 	
 	private PrivateKey privateKey;
-	private PublicKey publicKey;
+	
+	private String symmetricalKey;
+	private String userName;
+	private String ballot;
 	
 	public UserThread(Socket socket, ServerMain server) {
 		this.socket = socket;
@@ -55,40 +48,27 @@ public class UserThread extends Thread {
             System.out.println("INFO | User disconnected");
 
 		} catch (IOException e) {
-			System.out.println("ERROR | UserThread: " + e.getMessage());
+			System.err.println("ERROR | UserThread: " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
 	
 	private void handleCommands(String input) {
 		switch(input) {
-			case "START":
+			case "GETCANDIDATES":
 				List<String> candidates = FileManager.getCandidates();
 				writer.println(candidates);
 				System.out.println("INFO | Sent the list of candidates");
 				break;
 				
-			case "LISTCONFIRM":
-				receivedList = true;
-				System.out.println("INFO | Candidate-List arrived successfully");
-				break;
-				
-			case "PUB":
-				try { 
-					KeyManager keyManager = new KeyManager(); 
-					
-					publicKeyString = keyManager.getPublicKey(); 
-					privateKey = keyManager.getAsPrivateKey();
-					publicKey = keyManager.getAsPublicKey();
-					
-					writer.println(publicKeyString); 
-					
-				} catch (NoSuchAlgorithmException e) { e.printStackTrace(); }
-				break;
-				
-			case "PUBCONFIRM":
-				receivedPub = true;
-				System.out.println("INFO | Public-Key received successfully");
+			case "GETPUBKEY":
+				try {
+					RSAKeyManager rsaKeyManager = new RSAKeyManager();
+					privateKey = rsaKeyManager.getAsPrivateKey();
+					writer.println("PUB "+rsaKeyManager.getPublicKey());
+				} catch (NoSuchAlgorithmException e) {
+					e.printStackTrace();
+				}
 				break;
 				
 			case "EXIT":
@@ -96,16 +76,18 @@ public class UserThread extends Thread {
 		
 			default:
 				if(input.startsWith("BALLOT")) {
-					new BallotHandler(input, privateKey);
-					System.out.println("INFO | Received ballot successfully");
-				} else if(input.startsWith("ENCRYPT")) {
-					try {
-						System.out.println(KeyManager.encrypt("1", publicKey));
-					} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
-							| IllegalBlockSizeException | BadPaddingException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					String[] parts = input.split(" ");
+					ballot = parts[1];
+					
+				} else if(input.startsWith("USERNAME")) {
+					String[] parts = input.split(" ");
+					userName = parts[1];
+					
+				} else if(input.startsWith("KEY")) {
+					String[] parts = input.split(" ");
+					symmetricalKey = parts[1];	
+				} else if(input.startsWith("FINAL")) {
+					new BallotHandler(ballot, userName, symmetricalKey, privateKey);
 				}
 				break;
 		}
